@@ -79,20 +79,20 @@ def average_LR_RMSE(X, y, lambdas, n_folds):
     fold_size = num_samples // n_folds 
     RMSE_mat = np.zeros((n_folds, len(lambdas)))
 
-    for i in range(n_folds): #Loop over the 15 folds
+    for i in range(n_folds): # Loop over the 15 folds, here: ex. when first fold is the test set.
         start = i * fold_size
         end = (i + 1) * fold_size
 
-        test_idx = np.arange(start, end)  #Choose one sample in the fold as the test sample.
-        train_idx = np.setdiff1d(np.arange(num_samples), test_idx) #The rest of the samples are training samples.
+        test_idx = np.arange(start, end)  # [0, 1, ..., 14], test idx rows
+        train_idx = np.setdiff1d(np.arange(num_samples), test_idx) #[15, ..., 149], train idx rows
 
-        X_train, y_train = X[train_idx], y[train_idx]
-        X_test, y_test = X[test_idx], y[test_idx]
+        X_train, y_train = X[train_idx], y[train_idx] # Take the corresponding rows
+        X_test, y_test = X[test_idx], y[test_idx] # Take the corresponding rows
 
-        for j in range(len(lambdas)):
+        for j in range(len(lambdas)): #For each lambda train ridge regression on the folds 1-9, then evaluate w^hat on fold 1. 
             lam = lambdas[j]
-            w = fit(X_train, y_train, lam)
-            RMSE_mat[i, j] = calculate_RMSE(w, X_test, y_test)
+            w = fit(X_train, y_train, lam) #w^hat
+            RMSE_mat[i, j] = calculate_RMSE(w, X_test, y_test) 
 
 
     avg_RMSE = np.mean(RMSE_mat, axis=0)
