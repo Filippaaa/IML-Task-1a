@@ -9,7 +9,7 @@ from sklearn.model_selection import KFold
 # any additional imports)
 # import ...
 
-def fit(X, y, lam):
+def fit(X, y, lam): #|samples| x |features|, labels, hyperparameter
     """
     This function receives training data points, then fits the ridge regression on this data
     with regularization hyperparameter lambda. The weights w of the fitted ridge regression
@@ -25,10 +25,13 @@ def fit(X, y, lam):
     ----------
     w: array of floats: dim = (13,), optimal parameters of ridge regression
     """
-    weights = np.zeros((13,))
+
     # TODO: Enter your code here
+    num_features = X.shape[1] # 'd' in the script
+    I = np.eye(num_features)
+    weights = np.linalg.inv(X.T @ X + lam * I) @ X.T @ y # w^hat = (X^T X + lambda * I_d)^(-1) X^T y
     assert weights.shape == (13,)
-    return weights
+    return weights 
 
 
 def calculate_RMSE(w, X, y):
@@ -45,8 +48,10 @@ def calculate_RMSE(w, X, y):
     ----------
     rmse: float: dim = 1, RMSE value
     """
-    rmse = 0
+
     # TODO: Enter your code here
+    y_pred = X @ w # Predicted labels based based on the coefficients in w.
+    rmse = np.sqrt(np.mean((y - y_pred)**2)) 
     assert np.isscalar(rmse)
     return rmse
 
