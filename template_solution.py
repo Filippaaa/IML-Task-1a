@@ -10,23 +10,7 @@ from sklearn.model_selection import KFold
 # import ...
 
 def fit(X, y, lam): #|samples| x |features|, labels, hyperparameter
-    """
-    This function receives training data points, then fits the ridge regression on this data
-    with regularization hyperparameter lambda. The weights w of the fitted ridge regression
-    are returned. 
 
-    Parameters
-    ----------
-    X: matrix of floats, dim = (135,13), inputs with 13 features
-    y: array of floats, dim = (135,), input labels
-    lam: float. lambda parameter, used in regularization term
-
-    Returns
-    ----------
-    w: array of floats: dim = (13,), optimal parameters of ridge regression
-    """
-
-    # TODO: Enter your code here
     num_features = X.shape[1] # 'd' in the script
     I = np.eye(num_features)
     weights = np.linalg.inv(X.T @ X + lam * I) @ X.T @ y # w^hat = (X^T X + lambda * I_d)^(-1) X^T y
@@ -35,21 +19,7 @@ def fit(X, y, lam): #|samples| x |features|, labels, hyperparameter
 
 
 def calculate_RMSE(w, X, y):
-    """This function takes test data points (X and y), and computes the empirical RMSE of 
-    predicting y from X using a linear model with weights w. 
 
-    Parameters
-    ----------
-    w: array of floats: dim = (13,), optimal parameters of ridge regression 
-    X: matrix of floats, dim = (15,13), inputs with 13 features
-    y: array of floats, dim = (15,), input labels
-
-    Returns
-    ----------
-    rmse: float: dim = 1, RMSE value
-    """
-
-    # TODO: Enter your code here
     y_pred = X @ w # Predicted labels based based on the coefficients in w.
     rmse = np.sqrt(np.mean((y - y_pred)**2)) 
     assert np.isscalar(rmse)
@@ -57,40 +27,16 @@ def calculate_RMSE(w, X, y):
 
 
 def average_LR_RMSE(X, y, lambdas, n_folds):
-    """
-    Main cross-validation loop, implementing 10-fold CV. In every iteration (for every train-test split), the RMSE for every lambda is calculated, 
-    and then averaged over iterations.
-    
-    Parameters
-    ---------- 
-    X: matrix of floats, dim = (150, 13), inputs with 13 features
-    y: array of floats, dim = (150, ), input labels
-    lambdas: list of floats, len = 5, values of lambda for which ridge regression is fitted and RMSE estimated
-    n_folds: int, number of folds (pieces in which we split the dataset), parameter K in KFold CV
-    
-    Returns
-    ----------
-    avg_RMSE: array of floats: dim = (5,), average RMSE value for every lambda
-    """
 
-    # TODO: Enter your code here. Hint: Use functions 'fit' and 'calculate_RMSE' with training and test data
-    # and fill all entries in the matrix 'RMSE_mat'
-    num_samples = X.shape[0]
-    fold_size = num_samples // n_folds 
     RMSE_mat = np.zeros((n_folds, len(lambdas)))
+    kf = KFold(n_splits=n_folds, shuffle=True, random_state = 42)
 
-    for i in range(n_folds): # Loop over the 15 folds, here: ex. when first fold is the test set.
-        start = i * fold_size
-        end = (i + 1) * fold_size
-
-        test_idx = np.arange(start, end)  # [0, 1, ..., 14], test idx rows
-        train_idx = np.setdiff1d(np.arange(num_samples), test_idx) #[15, ..., 149], train idx rows
+    for i, (train_idx, test_idx) in enumerate (kf.split(X)): # Loop over the 15 folds, here: example when first fold is the test set.
 
         X_train, y_train = X[train_idx], y[train_idx] # Take the corresponding rows
         X_test, y_test = X[test_idx], y[test_idx] # Take the corresponding rows
 
-        for j in range(len(lambdas)): #For each lambda train ridge regression on the folds 1-9, then evaluate w^hat on fold 1. 
-            lam = lambdas[j]
+        for j, lam in enumerate(lambdas): # For each lambda train ridge regression on the folds 1-9, then evaluate w^hat on fold 1. 
             w = fit(X_train, y_train, lam) #w^hat
             RMSE_mat[i, j] = calculate_RMSE(w, X_test, y_test) 
 
@@ -116,3 +62,32 @@ if __name__ == "__main__":
     avg_RMSE = average_LR_RMSE(X, y, lambdas, n_folds)
     # Save results in the required format
     np.savetxt("./results.csv", avg_RMSE, fmt="%.12f")
+
+"""
+def average_LR_RMSE(X, y, lambdas, n_folds):
+    
+    num_samples = X.shape[0]
+    fold_size = num_samples // n_folds 
+    RMSE_mat = np.zeros((n_folds, len(lambdas)))
+    kf = KFold(n_splits=n_folds, shuffle=True, random_state = 42)
+
+    for i in range(n_folds): # Loop over the 15 folds, here: example when first fold is the test set.
+        start = i * fold_size
+        end = (i + 1) * fold_size
+
+        test_idx = np.arange(start, end)  # [0, 1, ..., 14], test idx rows
+        train_idx = np.setdiff1d(np.arange(num_samples), test_idx) #[15, ..., 149], train idx rows
+
+        X_train, y_train = X[train_idx], y[train_idx] # Take the corresponding rows
+        X_test, y_test = X[test_idx], y[test_idx] # Take the corresponding rows
+
+        for j in range(len(lambdas)): # For each lambda train ridge regression on the folds 1-9, then evaluate w^hat on fold 1. 
+            lam = lambdas[j]
+            w = fit(X_train, y_train, lam) #w^hat
+            RMSE_mat[i, j] = calculate_RMSE(w, X_test, y_test) 
+
+
+    avg_RMSE = np.mean(RMSE_mat, axis=0)
+    assert avg_RMSE.shape == (5,)
+    return avg_RMSE
+"""
