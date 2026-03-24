@@ -9,14 +9,13 @@ from sklearn.model_selection import KFold
 # any additional imports)
 # import ...
 
-def fit(X, y, lam): #|samples| x |features|, labels, hyperparameter
+def fit(X, y, lam): # Training Feature Matrix |samples| x |features|, labels, hyperparameter
 
-    num_features = X.shape[1] # 'd' in the script
-    I = np.eye(num_features)
+    d = X.shape[1] # Number of features
+    I = np.eye(d) 
     weights = np.linalg.inv(X.T @ X + lam * I) @ X.T @ y # w^hat = (X^T X + lambda * I_d)^(-1) X^T y
     assert weights.shape == (13,)
     return weights 
-
 
 def calculate_RMSE(w, X, y):
 
@@ -25,7 +24,6 @@ def calculate_RMSE(w, X, y):
     assert np.isscalar(rmse)
     return rmse
 
-
 def average_LR_RMSE(X, y, lambdas, n_folds):
 
     RMSE_mat = np.zeros((n_folds, len(lambdas)))
@@ -33,13 +31,12 @@ def average_LR_RMSE(X, y, lambdas, n_folds):
 
     for i, (train_idx, test_idx) in enumerate (kf.split(X)): # Loop over the 15 folds, here: example when first fold is the test set.
 
-        X_train, y_train = X[train_idx], y[train_idx] # Take the corresponding rows
-        X_test, y_test = X[test_idx], y[test_idx] # Take the corresponding rows
+        X_train, y_train = X[train_idx], y[train_idx] # Take the corresponding train rows, here: 15-149
+        X_test, y_test = X[test_idx], y[test_idx] # Take the corresponding test rows, here: 0-14
 
-        for j, lam in enumerate(lambdas): # For each lambda train ridge regression on the folds 1-9, then evaluate w^hat on fold 1. 
+        for j, lam in enumerate(lambdas): # For each lambda train ridge regression on the folds 1-9, then evaluate w^hat on fold 0. 
             w = fit(X_train, y_train, lam) #w^hat
             RMSE_mat[i, j] = calculate_RMSE(w, X_test, y_test) 
-
 
     avg_RMSE = np.mean(RMSE_mat, axis=0)
     assert avg_RMSE.shape == (5,)
@@ -60,6 +57,8 @@ if __name__ == "__main__":
     lambdas = [0.1, 1, 10, 100, 200]
     n_folds = 10
     avg_RMSE = average_LR_RMSE(X, y, lambdas, n_folds)
+
+
     # Save results in the required format
     np.savetxt("./results.csv", avg_RMSE, fmt="%.12f")
 
